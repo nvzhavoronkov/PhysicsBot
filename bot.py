@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Dict, Any
 import json
 from pathlib import Path
+import re
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -20,6 +21,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.exceptions import TelegramUnauthorizedError
 
 # ============================================================================
 # 1. НАСТРОЙКА ЛОГИРОВАНИЯ
@@ -31,7 +33,29 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# 2. ПОЛНАЯ БАЗА ДАННЫХ ЗАДАЧ ПО ФИЗИКЕ (7-11 КЛАССЫ)
+# 2. ТОКЕН БОТА (НОВЫЙ ТОКЕН)
+# ============================================================================
+BOT_TOKEN = "8508332502:AAGgzmDqgclyesVetdmzo1gPFrHoI5jB39U"
+
+def validate_token(token):
+    """Проверяет формат токена Telegram"""
+    pattern = r'^\d+:[a-zA-Z0-9_-]+$'
+    if re.match(pattern, token):
+        logger.info("✅ Формат токена правильный")
+        return True
+    else:
+        logger.error("❌ Неверный формат токена!")
+        return False
+
+# Проверяем токен перед запуском
+if not validate_token(BOT_TOKEN):
+    print("❌ ОШИБКА: Неверный формат токена!")
+    print("Токен должен быть в формате: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz")
+    print("Проверьте токен в BotFather и обновите его в коде")
+    exit(1)
+
+# ============================================================================
+# 3. ПОЛНАЯ БАЗА ДАННЫХ ЗАДАЧ ПО ФИЗИКЕ (7-11 КЛАССЫ)
 # ============================================================================
 PHYSICS_PROBLEMS = {
     "7": [
@@ -317,7 +341,7 @@ PHYSICS_PROBLEMS = {
 }
 
 # ============================================================================
-# ПОЛНАЯ БАЗА ОЛИМПИАД (добавлена полностью)
+# ПОЛНАЯ БАЗА ОЛИМПИАД
 # ============================================================================
 OLYMPIADS = [
     {
@@ -396,7 +420,7 @@ OLYMPIADS = [
 
 
 # ============================================================================
-# 3. Состояния FSM (исправлено)
+# 4. Состояния FSM
 # ============================================================================
 class PhysicsBotStates(StatesGroup):
     waiting_for_grade = State()
@@ -405,20 +429,54 @@ class PhysicsBotStates(StatesGroup):
 
 
 # ============================================================================
-# 4. Хранение состояния пользователей
+# 5. Хранение состояния пользователей
 # ============================================================================
 user_data: Dict[int, Dict[str, Any]] = {}
 
 # ============================================================================
-# 5. Инициализация бота (ТОКЕН ВСТАВЛЕН)
+# 6. Функция для создания бота с проверкой
 # ============================================================================
-BOT_TOKEN = "8508332502:AAFkd0zm0IF9Huy-ohLoWsPqLtt_yxP2lts"
-bot = Bot(token=BOT_TOKEN)
+async def create_bot_with_check():
+    """Создает бота и проверяет токен"""
+    try:
+        bot = Bot(token=BOT_TOKEN)
+        # Проверяем токен, получая информацию о боте
+        me = await bot.get_me()
+        logger.info(f"✅ Бот @{me.username} успешно авторизован!")
+        logger.info(f"🆔 ID бота: {me.id}")
+        logger.info(f"📝 Имя бота: {me.full_name}")
+        return bot
+    except TelegramUnauthorizedError:
+        logger.error("❌ Ошибка авторизации: Неверный токен!")
+        print("\n" + "="*50)
+        print("❌ ОШИБКА АВТОРИЗАЦИИ!")
+        print("="*50)
+        print("Токен бота недействителен. Возможные причины:")
+        print("1. Токен был сброшен в BotFather")
+        print("2. Токен скопирован неправильно")
+        print("3. Бот был удален")
+        print("\nРешение:")
+        print("1. Откройте Telegram")
+        print("2. Найдите @BotFather")
+        print("3. Отправьте /mybots")
+        print("4. Выберите своего бота")
+        print("5. Нажмите 'API Token'")
+        print("6. Скопируйте новый токен")
+        print("7. Замените токен в коде")
+        print("="*50)
+        raise
+    except Exception as e:
+        logger.error(f"❌ Неожиданная ошибка при создании бота: {e}")
+        raise
+
+# ============================================================================
+# 7. Инициализация диспетчера
+# ============================================================================
 dp = Dispatcher(storage=MemoryStorage())
 
 
 # ============================================================================
-# 6. ОБРАБОТЧИКИ КОМАНД
+# 8. ОБРАБОТЧИКИ КОМАНД
 # ============================================================================
 
 @dp.message(CommandStart())
@@ -477,7 +535,7 @@ async def cmd_help(message: Message):
 
 
 # ============================================================================
-# 7. CALLBACK ОБРАБОТЧИКИ
+# 9. CALLBACK ОБРАБОТЧИКИ
 # ============================================================================
 
 @dp.callback_query(F.data == "show_grades")
@@ -690,20 +748,53 @@ async def help_callback(callback: CallbackQuery):
 
 
 # ============================================================================
-# 8. ГЛАВНАЯ ФУНКЦИЯ ЗАПУСКА
+# 10. ГЛАВНАЯ ФУНКЦИЯ ЗАПУСКА
 # ============================================================================
 async def main():
-    """Запуск бота"""
-    print("✅ PhysicsBot v2.0 (aiogram 3.x) запущен!")
-    print("📱 Команды: /start, /zadachi, /spisokolimpiad, /help")
-    print(f"🤖 Токен бота: {BOT_TOKEN[:10]}...{BOT_TOKEN[-10:]}")
-    print("🚀 Бот готов к работе!")
-
+    """Запуск бота с проверкой"""
+    print("\n" + "="*50)
+    print("🚀 PHYSICS BOT v2.0")
+    print("="*50)
+    print(f"📅 Дата запуска: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
+    print("="*50)
+    
+    bot = None
     try:
+        # Создаем бота с проверкой токена
+        bot = await create_bot_with_check()
+        
+        print("\n📱 Доступные команды:")
+        print("   /start - главное меню")
+        print("   /zadachi - задачи по физике")
+        print("   /spisokolimpiad - список олимпиад")
+        print("   /help - помощь")
+        print("\n" + "="*50)
+        print("✅ Бот готов к работе!")
+        print("⏳ Ожидание сообщений...")
+        print("="*50 + "\n")
+        
+        # Запускаем поллинг
         await dp.start_polling(bot)
+        
+    except TelegramUnauthorizedError:
+        # Ошибка уже обработана в create_bot_with_check
+        pass
+    except KeyboardInterrupt:
+        print("\n👋 Бот остановлен пользователем")
+    except Exception as e:
+        logger.error(f"❌ Критическая ошибка: {e}")
+        print(f"\n❌ Произошла ошибка: {e}")
     finally:
-        await bot.session.close()
+        if bot:
+            await bot.session.close()
+            print("🔌 Сессия бота закрыта")
+            print("👋 Программа завершена")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n👋 Программа завершена")
+    except Exception as e:
+        print(f"\n❌ Необработанная ошибка: {e}")
