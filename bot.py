@@ -412,7 +412,7 @@ user_data: Dict[int, Dict[str, Any]] = {}
 # ============================================================================
 # 5. Инициализация бота (ТОКЕН ВСТАВЛЕН)
 # ============================================================================
-BOT_TOKEN = "8508332502:AAGY8smFaWYMrfONute7LtQgxDiplyEFSqw"
+BOT_TOKEN = "8508332502:AAFkd0zm0IF9Huy-ohLoWsPqLtt_yxP2lts"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
