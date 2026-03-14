@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # 2. ТОКЕН БОТА (НОВЫЙ ТОКЕН)
 # ============================================================================
-BOT_TOKEN = "8508332502:AAGgzmDqgclyesVetdmzo1gPFrHoI5jB39U"
+BOT_TOKEN = "7559755775:AAHTMCfRrQ8P8Y9afDJLr4r4qCvKdjgLsqI"
 
 def validate_token(token):
     """Проверяет формат токена Telegram"""
