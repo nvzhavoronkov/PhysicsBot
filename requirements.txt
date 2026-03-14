@@ -1,3 +1,7 @@
-pip install aiogram
+# pip install aiogram
+
+text
+
 aiogram==3.0.0
+
 python-dotenv>=1.0.0
