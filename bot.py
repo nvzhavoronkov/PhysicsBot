@@ -9,6 +9,7 @@ PHYSICS BOT - Telegram бот для изучения физики и подго
 import logging
 import random
 import asyncio
+import os
 from datetime import datetime
 from typing import Dict, Any
 import json
@@ -412,10 +413,14 @@ user_data: Dict[int, Dict[str, Any]] = {}
 # ============================================================================
 # 5. Инициализация бота (ТОКЕН ВСТАВЛЕН)
 # ============================================================================
-BOT_TOKEN = "7559755775:AAHTMCfRrQ8P8Y9afDJLr4r4qCvKdjgLsqI"
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(storage=MemoryStorage())
 
+# BOT_TOKEN = "7559755775:AAHTMCfRrQ8P8Y9afDJLr4r4qCvKdjgLsqI"
+# bot = Bot(token=BOT_TOKEN)
+# dp = Dispatcher(storage=MemoryStorage())
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+if BOT_TOKEN is None:
+    raise ValueError("Переменная окружения BOT_TOKEN не установлена!")
 
 # ============================================================================
 # 6. ОБРАБОТЧИКИ КОМАНД
