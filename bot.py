@@ -14,6 +14,7 @@ from typing import Dict, Any
 import json
 from pathlib import Path
 import re
+import os
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -37,6 +38,15 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 BOT_TOKEN = "7559755775:AAHTMCfRrQ8P8Y9afDJLr4r4qCvKdjgLsqI"
 
+# BOT_TOKEN = os.getenv('BOT_TOKEN')
+# if BOT_TOKEN is None:
+#     print("ОШИБКА: переменная окружения BOT_TOKEN не установлена!")
+#     print("Установите её перед запуском, например:")
+#     print("  export BOT_TOKEN='ваш_токен'  # Linux/macOS")
+#     print("  set BOT_TOKEN=ваш_токен       # Windows CMD")
+#     print("  $env:BOT_TOKEN='ваш_токен'    # Windows PowerShell")
+#     exit(1)
+    
 def validate_token(token):
     """Проверяет формат токена Telegram"""
     pattern = r'^\d+:[a-zA-Z0-9_-]+$'
