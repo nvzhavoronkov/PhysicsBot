@@ -414,7 +414,8 @@ user_data: Dict[int, Dict[str, Any]] = {}
 # 5. Инициализация бота (ТОКЕН ВСТАВЛЕН)
 # ============================================================================
 
-# BOT_TOKEN = "7559755775:AAHTMCfRrQ8P8Y9afDJLr4r4qCvKdjgLsqI"
+# BOT_TOKEN = "токен с BotFather" = hard code, так делать не надо! не безопасно!  
+# Keep your token secure and store it safely, it can be used by anyone to control your bot.
 # bot = Bot(token=BOT_TOKEN)
 # dp = Dispatcher(storage=MemoryStorage())
 
