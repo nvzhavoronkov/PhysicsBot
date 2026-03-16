@@ -346,7 +346,7 @@ PHYSICS_PROBLEMS = {
 }
 
 # ============================================================================
-# ПОЛНАЯ БАЗА ОЛИМПИАД
+# ПОЛНАЯ БАЗА ОЛИМПИАД (обновленные ссылки)
 # ============================================================================
 OLYMPIADS = [
     {
@@ -356,16 +356,16 @@ OLYMPIADS = [
         "importance": "Высшая",
         "registration_date": "Сентябрь-Октябрь 2026",
         "main_date": "Январь-Март 2027",
-        "url": "https://olimpiada.ru/physics"
+        "url": "https://olimpiada.ru/activity/74"  # профиль ВОШ по физике [web:20]
     },
     {
         "name": "Олимпиада Ломоносова МГУ",
-        "description": "Физический тур МФТИ и МГУ",
+        "description": "Физический тур МГУ и МФТИ",
         "levels": ["8", "9", "10", "11"],
         "importance": "Высокая",
         "registration_date": "Октябрь-Ноябрь 2026",
         "main_date": "Январь 2027",
-        "url": "https://olimpiada.ru/olymp/1"
+        "url": "https://olimpiada.ru/activity/9"  # профиль Ломоносов по физике [web:1]
     },
     {
         "name": "Олимпиада Высшая проба ВШЭ",
@@ -374,7 +374,7 @@ OLYMPIADS = [
         "importance": "Высокая",
         "registration_date": "Ноябрь 2026",
         "main_date": "Февраль 2027",
-        "url": "https://olimpiada.ru/olymp/54"
+        "url": "https://olimpiada.ru/activity/42"  # профиль Высшая проба по физике [web:1]
     },
     {
         "name": "Физтех МФТИ",
@@ -383,7 +383,7 @@ OLYMPIADS = [
         "importance": "Высшая",
         "registration_date": "Ноябрь 2026",
         "main_date": "Февраль-Март 2027",
-        "url": "https://olimpiada.ru/olymp/4"
+        "url": "https://olymp-online.mipt.ru"  # официальный сайт олимпиады «Физтех» [web:12][web:18]
     },
     {
         "name": "Покори Воробьёвы горы! МГУ",
@@ -392,7 +392,7 @@ OLYMPIADS = [
         "importance": "Высокая",
         "registration_date": "Декабрь 2026",
         "main_date": "Февраль 2027",
-        "url": "https://olimpiada.ru/olymp/2"
+        "url": "https://olimpiada.ru/activity/166"  # профиль «Покори Воробьёвы горы!» по физике [web:5]
     },
     {
         "name": "Олимпиада по физике для 7-8 классов",
@@ -401,7 +401,7 @@ OLYMPIADS = [
         "importance": "Первая",
         "registration_date": "Октябрь 2026",
         "main_date": "Декабрь 2026",
-        "url": "https://olimpiada.ru/physics/7-8"
+        "url": "https://www.ucheba.ru/for-abiturients/olympiads/physics"  # сводная страница олимпиад по физике [web:4]
     },
     {
         "name": "Инженерная олимпиада ОКей",
@@ -410,7 +410,7 @@ OLYMPIADS = [
         "importance": "Вторая",
         "registration_date": "Ноябрь 2026",
         "main_date": "Январь 2027",
-        "url": "https://okey.ru/olymp"
+        "url": "https://okey.ru"  # основной сайт сети (под олимпиаду можно сделать раздел)
     },
     {
         "name": "Олимпиада Росатома",
@@ -419,7 +419,7 @@ OLYMPIADS = [
         "importance": "Высокая",
         "registration_date": "Октябрь 2026",
         "main_date": "Март 2027",
-        "url": "https://olimpiada.ru/olymp/100"
+        "url": "https://olimpiada.ru/activity/100"  # профиль олимпиады Росатома [web:7]
     }
 ]
 
