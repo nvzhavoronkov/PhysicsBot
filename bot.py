@@ -187,11 +187,11 @@ OLYMPIADS = [
 # ============================================================================
 # 5. Состояния FSM и данные пользователей
 # ============================================================================
-class PhysicsBotStates(StatesGroup):
-     waiting_for_grade = State()
-     waiting_for_answer = State()
-     olympiad_filter = State()
-user_data: Dict[int, Dict[str, Any]] = {}
+#class PhysicsBotStates(StatesGroup):
+     #waiting_for_grade = State()
+     #waiting_for_answer = State()
+     #olympiad_filter = State()
+#user_data: Dict[int, Dict[str, Any]] = {}
 
 # ============================================================================
 # 6. Создание бота
