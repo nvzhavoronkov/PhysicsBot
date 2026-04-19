@@ -11,14 +11,11 @@ import random
 import asyncio
 from datetime import datetime
 from typing import Dict, Any
-import re
 import os
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command, CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.exceptions import TelegramUnauthorizedError
 
@@ -38,21 +35,6 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 if BOT_TOKEN is None:
     raise ValueError("Переменная окружения BOT_TOKEN не установлена!")
 
-def validate_token(token):
-    """Проверяет формат токена Telegram"""
-    pattern = r'^\d+:[a-zA-Z0-9_-]+$'
-    if re.match(pattern, token):
-        logger.info("✅ Формат токена правильный")
-        return True
-    else:
-        logger.error("❌ Неверный формат токена!")
-        return False
-
-if not validate_token(BOT_TOKEN):
-    print("❌ ОШИБКА: Неверный формат токена!")
-    print("Токен должен быть в формате: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz")
-    exit(1)
-
 # ============================================================================
 # 3. База задач по физике 7-11 классы
 # ============================================================================
@@ -60,7 +42,7 @@ PHYSICS_PROBLEMS = {
     "7": [
         {"question": "Автомобиль движется со скоростью 72 км/ч. Какой путь он пройдет за 10 секунд?", "options": ["200 м", "100 м", "300 м"], "correct": 0, "explanation": "72 км/ч = 20 м/с. S = v·t = 20·10 = 200 м."},
         {"question": "Какая сила тяжести действует на тело массой 5 кг? (g = 10 м/с²)", "options": ["50 Н", "10 Н", "5 Н"], "correct": 0, "explanation": "F = m·g = 5·10 = 50 Н."},
-        {"question": "Лед плавает в воде. Какая часть льда находится над водой?", "options": ["1/9", "1/10", "1/11"], "correct": 2, "explanation": "ρ_лед ≈ 900 кг/м³, ρ_воды ≈ 1000 кг/м³. Над водой 1/10."},
+        {"question": "Лед плавает в воде. Какая часть льда находится над водой?", "options": ["1/9", "1/10", "1/11"], "correct": 1, "explanation": "ρ_лед ≈ 900 кг/м³, ρ_воды ≈ 1000 кг/м³. Над водой 1/10."},
         {"question": "Тело массой 2 кг падает свободно 5 с. С какой скоростью оно ударится о землю? (g=10 м/с²)", "options": ["25 м/с", "50 м/с", "10 м/с"], "correct": 1, "explanation": "v = g·t = 10·5 = 50 м/с."},
         {"question": "Какой объем займет 2 кг воды? (плотность воды 1000 кг/м³)", "options": ["0.002 м³", "2 м³", "2000 м³"], "correct": 0, "explanation": "V = m/ρ = 2/1000 = 0.002 м³."},
         {"question": "Сколько секунд в сутках?", "options": ["86400", "24000", "3600"], "correct": 0, "explanation": "24·60·60 = 86400 с."},
@@ -185,12 +167,8 @@ OLYMPIADS = [
 ]
 
 # ============================================================================
-# 5. Система хранения состояния пользователей (состояния FSM и данные пользователей)
+# 5. Система хранения состояния пользователей (простая in-memory)
 # ============================================================================
-class PhysicsBotStates(StatesGroup):
-     waiting_for_grade = State()
-     waiting_for_answer = State()
-     olympiad_filter = State()
 user_data: Dict[int, Dict[str, Any]] = {}
 
 # ============================================================================
@@ -204,10 +182,7 @@ async def create_bot_with_check():
         logger.info(f"🆔 ID бота: {me.id}")
         return bot
     except TelegramUnauthorizedError:
-        print("\n" + "="*50)
-        print("❌ ОШИБКА АВТОРИЗАЦИИ!")
-        print("Токен недействителен. Получите новый в @BotFather")
-        print("="*50)
+        logger.error("❌ ОШИБКА АВТОРИЗАЦИИ! Токен недействителен. Получите новый в @BotFather")
         raise
 
 # ============================================================================
@@ -216,19 +191,31 @@ async def create_bot_with_check():
 dp = Dispatcher(storage=MemoryStorage())
 
 # ============================================================================
-# 8. КОМАНДЫ
+# Вспомогательные функции для клавиатур
 # ============================================================================
-@dp.message(CommandStart())
-async def cmd_start(message: Message):
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+def get_main_menu_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📚 Задачи по физике", callback_data="show_grades")],
         [InlineKeyboardButton(text="🏆 Олимпиады", callback_data="show_olympiads")],
         [InlineKeyboardButton(text="❓ Помощь", callback_data="help")]
     ])
+
+def get_olympiad_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📋 Все", callback_data="olymp_all"), InlineKeyboardButton(text="7️⃣8️⃣", callback_data="olymp_78")],
+        [InlineKeyboardButton(text="9️⃣🔟1️⃣1️⃣", callback_data="olymp_911"), InlineKeyboardButton(text="🏅 Престижные", callback_data="olymp_high")],
+        [InlineKeyboardButton(text="📚 Задачи", callback_data="show_grades")]
+    ])
+
+# ============================================================================
+# 8. КОМАНДЫ
+# ============================================================================
+@dp.message(CommandStart())
+async def cmd_start(message: Message):
     await message.answer(
         "🏆 Привет! Я бот-помощник по физике для подготовки к олимпиадам!\n\n"
         "📚 Выбери, что хочешь изучить:",
-        reply_markup=keyboard
+        reply_markup=get_main_menu_keyboard()
     )
 
 @dp.message(Command("zadachi"))
@@ -258,7 +245,7 @@ async def cmd_help(message: Message):
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
 # ============================================================================
-# 9. ЗАДАЧИ
+# 9. ЗАДАЧи
 # ============================================================================
 @dp.callback_query(F.data == "show_grades")
 async def show_grade_selection_callback(callback: CallbackQuery):
@@ -312,11 +299,12 @@ async def check_answer(callback: CallbackQuery):
     grade = parts[2]
 
     user_id = callback.from_user.id
-    if user_id not in user_data:
-        await callback.answer("Сессия истекла!", show_alert=True)
+    problem = user_data.get(user_id, {}).get("problem")
+
+    if not problem:
+        await callback.answer("Сессия истекла! Выберите задачу заново.", show_alert=True)
         return
 
-    problem = user_data[user_id]["problem"]
     correct = problem["correct"]
     
     if user_answer == correct:
@@ -333,6 +321,9 @@ async def check_answer(callback: CallbackQuery):
         [InlineKeyboardButton(text="🏆 Олимпиады", callback_data="show_olympiads")]
     ])
 
+    # очищаем данные после проверки (чтобы не накапливать мусор)
+    user_data.pop(user_id, None)
+
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
     await callback.answer()
 
@@ -345,10 +336,7 @@ async def show_olympiad_filters_callback(callback: CallbackQuery):
     await callback.answer()
 
 async def show_olympiad_filters(message_or_cb):
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📋 Все", callback_data="olymp_all"), InlineKeyboardButton(text="7️⃣8️⃣", callback_data="olymp_78")],
-        [InlineKeyboardButton(text="9️⃣🔟1️⃣1️⃣", callback_data="olymp_911"), InlineKeyboardButton(text="🏅 Престижные", callback_data="olymp_high")]
-    ])
+    keyboard = get_olympiad_keyboard()
     current_year = datetime.now().year
     text = f"🏆 <b>Олимпиады {current_year}-{current_year+1}</b>\n\nВыбери категорию:"
     if isinstance(message_or_cb, Message):
@@ -374,6 +362,8 @@ async def show_olympiads(callback: CallbackQuery):
     elif category == "high":
         filtered = [o for o in OLYMPIADS if o["importance"] in ["Высшая", "Высокая"]]
         response += "🏅 <b>Престижные:</b>\n\n"
+    else:
+        filtered = []
 
     if not filtered:
         response += "❌ Не найдено."
@@ -390,13 +380,12 @@ async def show_olympiads(callback: CallbackQuery):
                 f"   🔗 <a href='{olymp['url']}'>Сайт</a>\n\n"
             )
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📋 Все", callback_data="olymp_all"), InlineKeyboardButton(text="7️⃣8️⃣", callback_data="olymp_78")],
-        [InlineKeyboardButton(text="9️⃣🔟1️⃣1️⃣", callback_data="olymp_911"), InlineKeyboardButton(text="🏅 Престижные", callback_data="olymp_high")],
-        [InlineKeyboardButton(text="📚 Задачи", callback_data="show_grades")]
-    ])
-
-    await callback.message.edit_text(response, reply_markup=keyboard, parse_mode="HTML", disable_web_page_preview=True)
+    await callback.message.edit_text(
+        response,
+        reply_markup=get_olympiad_keyboard(),
+        parse_mode="HTML",
+        disable_web_page_preview=True
+    )
     await callback.answer()
 
 @dp.callback_query(F.data == "help")
@@ -408,25 +397,25 @@ async def help_callback(callback: CallbackQuery):
 # 11. ЗАПУСК
 # ============================================================================
 async def main():
-    print("\n" + "="*50)
-    print("🚀 PHYSICS BOT v2.1 (БЕЗ ОКЕЙ)")
-    print("="*50)
-    print(f"📅 {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
-    print("="*50)
+    logger.info("="*50)
+    logger.info("🚀 PHYSICS BOT v2.1")
+    logger.info("="*50)
+    logger.info(f"📅 {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
+    logger.info("="*50)
     
     bot = None
     try:
         bot = await create_bot_with_check()
-        print("\n✅ Бот готов!")
-        print("📱 /start, /zadachi, /spisokolimpiad")
+        logger.info("✅ Бот готов! Команды: /start, /zadachi, /spisokolimpiad")
         await dp.start_polling(bot)
     except KeyboardInterrupt:
-        print("\n👋 Остановлен")
+        logger.info("👋 Остановлен пользователем (KeyboardInterrupt)")
     except Exception as e:
-        print(f"\n❌ Ошибка: {e}")
+        logger.exception(f"❌ Необработанная ошибка: {e}")
     finally:
         if bot:
             await bot.session.close()
+            logger.info("🔌 Сессия бота закрыта")
 
 if __name__ == "__main__":
     asyncio.run(main())
