@@ -19,25 +19,16 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.exceptions import TelegramUnauthorizedError
 
-# ============================================================================
-# 1. НАСТРОЙКА ЛОГИРОВАНИЯ
-# ============================================================================
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# ============================================================================
-# 2. ТОКЕН БОТА
-# ============================================================================
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 if BOT_TOKEN is None:
     raise ValueError("Переменная окружения BOT_TOKEN не установлена!")
 
-# ============================================================================
-# 3. База задач по физике 7-11 классы
-# ============================================================================
 PHYSICS_PROBLEMS = {
     "7": [
         {"question": "Автомобиль движется со скоростью 72 км/ч. Какой путь он пройдет за 10 секунд?", "options": ["200 м", "100 м", "300 м"], "correct": 0, "explanation": "72 км/ч = 20 м/с. S = v·t = 20·10 = 200 м."},
@@ -97,9 +88,6 @@ PHYSICS_PROBLEMS = {
     ]
 }
 
-# =======================================================================
-# 4. БАЗА ОЛИМПИАД 
-# =======================================================================
 OLYMPIADS = [
     {
         "name": "Всероссийская олимпиада школьников по физике",
@@ -166,14 +154,8 @@ OLYMPIADS = [
     }
 ]
 
-# ============================================================================
-# 5. Система хранения состояния пользователей (простая in-memory)
-# ============================================================================
 user_data: Dict[int, Dict[str, Any]] = {}
 
-# ============================================================================
-# 6. Создание бота
-# ============================================================================
 async def create_bot_with_check():
     try:
         bot = Bot(token=BOT_TOKEN)
@@ -185,14 +167,8 @@ async def create_bot_with_check():
         logger.error("❌ ОШИБКА АВТОРИЗАЦИИ! Токен недействителен. Получите новый в @BotFather")
         raise
 
-# ============================================================================
-# 7. Диспетчер
-# ============================================================================
 dp = Dispatcher(storage=MemoryStorage())
 
-# ============================================================================
-# Вспомогательные функции для клавиатур
-# ============================================================================
 def get_main_menu_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📚 Задачи по физике", callback_data="show_grades")],
@@ -207,9 +183,6 @@ def get_olympiad_keyboard():
         [InlineKeyboardButton(text="📚 Задачи", callback_data="show_grades")]
     ])
 
-# ============================================================================
-# 8. КОМАНДЫ
-# ============================================================================
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     await message.answer(
@@ -244,9 +217,6 @@ async def cmd_help(message: Message):
     ])
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
-# ============================================================================
-# 9. ЗАДАЧи
-# ============================================================================
 @dp.callback_query(F.data == "show_grades")
 async def show_grade_selection_callback(callback: CallbackQuery):
     await show_grade_selection(callback.message)
@@ -306,7 +276,7 @@ async def check_answer(callback: CallbackQuery):
         return
 
     correct = problem["correct"]
-    
+
     if user_answer == correct:
         result = "✅ <b>ПРАВИЛЬНО!</b>"
         emoji = "🎉"
@@ -315,21 +285,17 @@ async def check_answer(callback: CallbackQuery):
         emoji = "😔"
 
     text = f"{emoji} {result}\n\n📝 <b>Решение:</b>\n{problem['explanation']}\n\n🔄 Ещё задачу?"
-    
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔄 Ещё", callback_data=f"grade_{grade}"), InlineKeyboardButton(text="📚 Другой класс", callback_data="show_grades")],
         [InlineKeyboardButton(text="🏆 Олимпиады", callback_data="show_olympiads")]
     ])
 
-    # очищаем данные после проверки (чтобы не накапливать мусор)
     user_data.pop(user_id, None)
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
     await callback.answer()
 
-# ============================================================================
-# 10. ОЛИМПИАДЫ
-# ============================================================================
 @dp.callback_query(F.data == "show_olympiads")
 async def show_olympiad_filters_callback(callback: CallbackQuery):
     await show_olympiad_filters(callback.message)
@@ -393,20 +359,18 @@ async def help_callback(callback: CallbackQuery):
     await cmd_help(callback.message)
     await callback.answer()
 
-# ============================================================================
-# 11. ЗАПУСК
-# ============================================================================
 async def main():
-    logger.info("="*50)
+    logger.info("=" * 50)
     logger.info("🚀 PHYSICS BOT v2.1")
-    logger.info("="*50)
+    logger.info("=" * 50)
     logger.info(f"📅 {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
-    logger.info("="*50)
-    
+    logger.info("=" * 50)
+
     bot = None
     try:
         bot = await create_bot_with_check()
-        logger.info("✅ Бот готов! Команды: /start, /zadachi, /spisokolimpiad")
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("✅ Webhook удалён, запускаю polling")
         await dp.start_polling(bot)
     except KeyboardInterrupt:
         logger.info("👋 Остановлен пользователем (KeyboardInterrupt)")
