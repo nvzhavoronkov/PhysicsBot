@@ -18,6 +18,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.exceptions import TelegramUnauthorizedError
+from aiogram.client.default import DefaultBotProperties
 
 # ============================================================================
 # 1. НАСТРОЙКА ЛОГИРОВАНИЯ
@@ -176,7 +177,7 @@ user_data: Dict[int, Dict[str, Any]] = {}
 # ============================================================================
 async def create_bot_with_check():
     try:
-        bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+        bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
         me = await bot.get_me()
         logger.info(f"✅ Бот @{me.username} успешно авторизован!")
         logger.info(f"🆔 ID бота: {me.id}")
