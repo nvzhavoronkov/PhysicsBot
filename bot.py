@@ -1,7 +1,7 @@
 """
 PHYSICS BOT - Telegram бот для изучения физики и подготовки к олимпиадам
 Автор: Жаворонков Ярослав Николаевич, 7Д класс
-Руководитель: Жаворонков Николай Валерьевич
+Руководитель: Жаворонков Николай Валерьевич, ИТ-директор
 Версия: 2.1 (aiogram, расширенная база задач)
 Дата: 2026 год
 """
@@ -19,16 +19,25 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.exceptions import TelegramUnauthorizedError
 
+# ============================================================================
+# 1. НАСТРОЙКА ЛОГИРОВАНИЯ
+# ============================================================================
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# 2. ТОКЕН БОТА
+# ============================================================================
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 if BOT_TOKEN is None:
     raise ValueError("Переменная окружения BOT_TOKEN не установлена!")
 
+# ============================================================================
+# 3. База задач по физике 7-11 классы
+# ============================================================================
 PHYSICS_PROBLEMS = {
     "7": [
         {"question": "Автомобиль движется со скоростью 72 км/ч. Какой путь он пройдет за 10 секунд?", "options": ["200 м", "100 м", "300 м"], "correct": 0, "explanation": "72 км/ч = 20 м/с. S = v·t = 20·10 = 200 м."},
@@ -88,6 +97,9 @@ PHYSICS_PROBLEMS = {
     ]
 }
 
+# =======================================================================
+# 4. БАЗА ОЛИМПИАД 
+# =======================================================================
 OLYMPIADS = [
     {
         "name": "Всероссийская олимпиада школьников по физике",
@@ -154,8 +166,14 @@ OLYMPIADS = [
     }
 ]
 
+# ============================================================================
+# 5. Система хранения состояния пользователей (простая in-memory)
+# ============================================================================
 user_data: Dict[int, Dict[str, Any]] = {}
 
+# ============================================================================
+# 6. Создание бота
+# ============================================================================
 async def create_bot_with_check():
     try:
         bot = Bot(token=BOT_TOKEN)
@@ -167,8 +185,14 @@ async def create_bot_with_check():
         logger.error("❌ ОШИБКА АВТОРИЗАЦИИ! Токен недействителен. Получите новый в @BotFather")
         raise
 
+# ============================================================================
+# 7. Диспетчер
+# ============================================================================
 dp = Dispatcher(storage=MemoryStorage())
 
+# ============================================================================
+# Вспомогательные функции для клавиатур
+# ============================================================================
 def get_main_menu_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📚 Задачи по физике", callback_data="show_grades")],
@@ -183,10 +207,13 @@ def get_olympiad_keyboard():
         [InlineKeyboardButton(text="📚 Задачи", callback_data="show_grades")]
     ])
 
+# ============================================================================
+# 8. КОМАНДЫ
+# ============================================================================
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     await message.answer(
-        "🏆 Привет! Я бот-помощник по физике для подготовки к олимпиадам!\n\n"
+        "🏆 Привет! Я бот-помощник по физике для подготовки к олимпиадам!\\n\\n"
         "📚 Выбери, что хочешь изучить:",
         reply_markup=get_main_menu_keyboard()
     )
@@ -202,13 +229,13 @@ async def cmd_olimpiads(message: Message):
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
     text = (
-        "📚 <b>PhysicsBot v2.1</b>\n\n"
-        "🎯 <b>Команды:</b>\n"
-        "• /start - главное меню\n"
-        "• /zadachi - задачи\n"
-        "• /spisokolimpiad - олимпиады\n"
-        "• /help - справка\n\n"
-        "📖 <b>Задачи:</b> 7-11 классы, подробные объяснения\n"
+        "📚 <b>PhysicsBot v2.1</b>\\n\\n"
+        "🎯 <b>Команды:</b>\\n"
+        "• /start - главное меню\\n"
+        "• /zadachi - задачи\\n"
+        "• /spisokolimpiad - олимпиады\\n"
+        "• /help - справка\\n\\n"
+        "📖 <b>Задачи:</b> 7-11 классы, подробные объяснения\\n"
         "🏅 <b>Олимпиады:</b> 8 реальных олимпиад 2026-2027"
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -217,6 +244,9 @@ async def cmd_help(message: Message):
     ])
     await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
+# ============================================================================
+# 9. ЗАДАЧИ
+# ============================================================================
 @dp.callback_query(F.data == "show_grades")
 async def show_grade_selection_callback(callback: CallbackQuery):
     await show_grade_selection(callback.message)
@@ -229,11 +259,11 @@ async def show_grade_selection(message_or_cb):
         [InlineKeyboardButton(text="1️⃣1️⃣ 11 класс", callback_data="grade_11")]
     ])
     text = (
-        "📚 <b>Выбери класс:</b>\n\n"
-        "🟢 7 класс - механика\n"
-        "🟡 8 класс - теплота, электричество\n"
-        "🟠 9 класс - кинематика\n"
-        "🔴 10 класс - электромагнетизм\n"
+        "📚 <b>Выбери класс:</b>\\n\\n"
+        "🟢 7 класс - механика\\n"
+        "🟡 8 класс - теплота, электричество\\n"
+        "🟠 9 класс - кинематика\\n"
+        "🔴 10 класс - электромагнетизм\\n"
         "🟣 11 класс - СТО, квантовая физика"
     )
     if isinstance(message_or_cb, Message):
@@ -257,7 +287,7 @@ async def send_problem(callback: CallbackQuery):
     ])
 
     await callback.message.edit_text(
-        f"📖 <b>{grade} класс</b>\n\n{problem['question']}\n\n<b>Ответ:</b>",
+        f"📖 <b>{grade} класс</b>\\n\\n{problem['question']}\\n\\n<b>Ответ:</b>",
         reply_markup=keyboard, parse_mode="HTML"
     )
     await callback.answer()
@@ -276,26 +306,30 @@ async def check_answer(callback: CallbackQuery):
         return
 
     correct = problem["correct"]
-
+    
     if user_answer == correct:
         result = "✅ <b>ПРАВИЛЬНО!</b>"
         emoji = "🎉"
     else:
-        result = f"❌ <b>НЕПРАВИЛЬНО!</b>\n<b>{correct+1}</b>. {problem['options'][correct]}"
+        result = f"❌ <b>НЕПРАВИЛЬНО!</b>\\n<b>{correct+1}</b>. {problem['options'][correct]}"
         emoji = "😔"
 
-    text = f"{emoji} {result}\n\n📝 <b>Решение:</b>\n{problem['explanation']}\n\n🔄 Ещё задачу?"
-
+    text = f"{emoji} {result}\\n\\n📝 <b>Решение:</b>\\n{problem['explanation']}\\n\\n🔄 Ещё задачу?"
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔄 Ещё", callback_data=f"grade_{grade}"), InlineKeyboardButton(text="📚 Другой класс", callback_data="show_grades")],
         [InlineKeyboardButton(text="🏆 Олимпиады", callback_data="show_olympiads")]
     ])
 
+    # очищаем данные после проверки (чтобы не накапливать мусор)
     user_data.pop(user_id, None)
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
     await callback.answer()
 
+# ============================================================================
+# 10. ОЛИМПИАДЫ
+# ============================================================================
 @dp.callback_query(F.data == "show_olympiads")
 async def show_olympiad_filters_callback(callback: CallbackQuery):
     await show_olympiad_filters(callback.message)
@@ -304,7 +338,7 @@ async def show_olympiad_filters_callback(callback: CallbackQuery):
 async def show_olympiad_filters(message_or_cb):
     keyboard = get_olympiad_keyboard()
     current_year = datetime.now().year
-    text = f"🏆 <b>Олимпиады {current_year}-{current_year+1}</b>\n\nВыбери категорию:"
+    text = f"🏆 <b>Олимпиады {current_year}-{current_year+1}</b>\\n\\nВыбери категорию:"
     if isinstance(message_or_cb, Message):
         await message_or_cb.answer(text, reply_markup=keyboard, parse_mode="HTML")
     else:
@@ -314,20 +348,20 @@ async def show_olympiad_filters(message_or_cb):
 async def show_olympiads(callback: CallbackQuery):
     category = callback.data.split("_")[1]
     current_year = datetime.now().year
-    response = f"🏆 <b>Олимпиады {current_year}-{current_year+1}</b>\n\n"
+    response = f"🏆 <b>Олимпиады {current_year}-{current_year+1}</b>\\n\\n"
 
     if category == "all":
         filtered = OLYMPIADS
-        response += "📋 <b>Все олимпиады:</b>\n\n"
+        response += "📋 <b>Все олимпиады:</b>\\n\\n"
     elif category == "78":
         filtered = [o for o in OLYMPIADS if any(lvl in ["7", "8"] for lvl in o["levels"])]
-        response += "🎯 <b>7-8 классы:</b>\n\n"
+        response += "🎯 <b>7-8 классы:</b>\\n\\n"
     elif category == "911":
         filtered = [o for o in OLYMPIADS if any(lvl in ["9", "10", "11"] for lvl in o["levels"])]
-        response += "🎓 <b>9-11 классы:</b>\n\n"
+        response += "🎓 <b>9-11 классы:</b>\\n\\n"
     elif category == "high":
         filtered = [o for o in OLYMPIADS if o["importance"] in ["Высшая", "Высокая"]]
-        response += "🏅 <b>Престижные:</b>\n\n"
+        response += "🏅 <b>Престижные:</b>\\n\\n"
     else:
         filtered = []
 
@@ -337,13 +371,13 @@ async def show_olympiads(callback: CallbackQuery):
         for i, olymp in enumerate(filtered, 1):
             levels = ", ".join(olymp["levels"])
             response += (
-                f"{i}. <b>{olymp['name']}</b>\n"
-                f"   {olymp['description']}\n"
-                f"   Классы: {levels}\n"
-                f"   🏅 {olymp['importance']}\n"
-                f"   📅 {olymp['registration_date']}\n"
-                f"   📅 {olymp['main_date']}\n"
-                f"   🔗 <a href='{olymp['url']}'>Сайт</a>\n\n"
+                f"{i}. <b>{olymp['name']}</b>\\n"
+                f"   {olymp['description']}\\n"
+                f"   Классы: {levels}\\n"
+                f"   🏅 {olymp['importance']}\\n"
+                f"   📅 {olymp['registration_date']}\\n"
+                f"   📅 {olymp['main_date']}\\n"
+                f"   🔗 <a href='{olymp['url']}'>Сайт</a>\\n\\n"
             )
 
     await callback.message.edit_text(
@@ -359,18 +393,20 @@ async def help_callback(callback: CallbackQuery):
     await cmd_help(callback.message)
     await callback.answer()
 
+# ============================================================================
+# 11. ЗАПУСК
+# ============================================================================
 async def main():
-    logger.info("=" * 50)
+    logger.info("="*50)
     logger.info("🚀 PHYSICS BOT v2.1")
-    logger.info("=" * 50)
+    logger.info("="*50)
     logger.info(f"📅 {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
-    logger.info("=" * 50)
-
+    logger.info("="*50)
+    
     bot = None
     try:
         bot = await create_bot_with_check()
-        await bot.delete_webhook(drop_pending_updates=True)
-        logger.info("✅ Webhook удалён, запускаю polling")
+        logger.info("✅ Бот готов! Команды: /start, /zadachi, /spisokolimpiad")
         await dp.start_polling(bot)
     except KeyboardInterrupt:
         logger.info("👋 Остановлен пользователем (KeyboardInterrupt)")
