@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from aiogram import Bot, Dispatcher, F, html
+from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
@@ -18,11 +18,14 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start_handler(message: Message) -> None:
-    await message.answer(f"Привет, {html.bold(message.from_user.full_name)}!")
+    await message.answer("Привет! Напиши что-нибудь, и я повторю это.")
 
-@dp.message(F.text)
+@dp.message()
 async def echo_handler(message: Message) -> None:
-    await message.answer(message.text)
+    if message.text:
+        await message.answer(message.text)
+    else:
+        await message.answer("Я умею повторять только текстовые сообщения.")
 
 async def main() -> None:
     bot = Bot(
